@@ -1,0 +1,4 @@
+Generate report every day:
+  cron: "15 6 * * *"
+  class: "GenerateReportWorker"
+  queue: default

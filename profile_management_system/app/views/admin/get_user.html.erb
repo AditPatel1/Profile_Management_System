@@ -1,0 +1,27 @@
+<h2>User Details</h2>
+
+Name : <%= @user.name %>
+<br><br>
+Email : <%= @user.email %>
+<br><br>
+Phone Number : <%= @user.phone_no %>
+<br><br>
+Birthdate : <%= @user.birth_date %>
+<br><br>
+Address : <%= @user.address %>
+<br><br>
+About Me : <%= @user.about_me %>
+<br><br>
+Parent_ID : <%= @user.parent_id %>
+<br><br>
+Profile_Type : <%= @user.profile_type %>
+<br><br>
+Status : <%= @user.status %>
+<br><br>
+Children : 
+	<% @user.children.each do |child|  %>
+	<%= link_to child.name, admin_get_user_path(:user_id => child.id) %>
+	<%end%> 
+<br><br>
+
+<%= link_to 'Admin Index Page', admin_index_path %>

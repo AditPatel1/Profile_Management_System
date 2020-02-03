@@ -1,0 +1,23 @@
+<h1> Welcome, <%= @user.name %> ! </h1>
+
+Name : <%= @user.name %>
+<br><br>
+Email : <%= @user.email %>
+<br><br>
+Phone Number : <%= @user.phone_no %>
+<br><br>
+Birthdate : <%= @user.birth_date %>
+<br><br>
+Address : <%= @user.address %>
+<br><br>
+About Me : <%= @user.about_me %>
+<br><br>
+Parent_ID : <%= @user.parent_id %>
+<br><br>
+Profile_Type : <%= @user.profile_type %>
+<br><br>
+Status : <%= @user.status %>
+<br><br>
+
+<%= link_to 'Edit', edit_user_path(@user) %><br>
+<%= link_to 'Logout', users_logout_path, method: :delete %>

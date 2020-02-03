@@ -1,0 +1,48 @@
+<h1>Search Users</h1>
+  <%= form_tag 'search_users' do %>
+  <%= label_tag :field, "Search by" %>
+  <%= radio_button_tag :field, 'name', checked: true %>Name
+  <%= radio_button_tag :field, 'email' %>E-mail
+  <%= radio_button_tag :field, 'phone_no' %>Phone Number
+  <%= label_tag "Search for" %>
+  <%= text_field_tag :query %>
+  <%= submit_tag "Go", name: nil %>
+<% end %>
+
+<% unless @users.nil? %>
+  <% if @users.empty? %>
+    <h2>No posts found matching your query.</h2>
+  <% else %>
+    <h2>Search results</h2>
+    <table>
+      <thead>
+         <tr>
+           <th>Profile Id</th>
+           <th>Name</th>
+           <th>Email</th>
+           <th>Phone number</th>
+           <th>Status</th>
+           <th>Profile_type</th>
+         </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+          	<td><%= user.id %></td>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
+            <td><%= user.phone_no %></td>
+            <td><%= user.status %></td>
+            <td><%= user.profile_type %></td>
+            <td><%= link_to 'Get Profile', admin_get_user_path(:user_id => user.id) %></td>
+            <td><%= link_to 'Edit Profile', admin_edit_user_path(:user_id => user.id) %></td>
+            <td><%= link_to 'Deactivate User', deactivate_user_path(:user_id => user.id), method: :delete %></td>
+          </tr>
+        <% end %>
+      <tbody>
+    </table>
+  <% end %>
+<% end %>
+
+<br><br>
+<%= link_to 'Admin Index Page', admin_index_path %>

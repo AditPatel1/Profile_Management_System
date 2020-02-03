@@ -1,0 +1,59 @@
+<h1>Edit User Info</h1>
+ 
+  <%= form_with(model: @user, local: true, url: { :controller => 'admin', :action => 'update' }) do |form| %>
+   
+    <p>
+      <%= form.label :Profile_ID %><br>
+      <%= form.text_field :id %>
+    </p>
+
+   <p>
+      <%= form.label :Name %><br>
+      <%= form.text_field :name %>
+    </p>
+
+    <p>
+      <%= form.label :Email %><br>
+      <%= form.email_field :email %>
+    </p>
+   
+    <p>
+      <%= form.label :Password %><br>
+      <%= form.password_field :password %>
+    </p>
+
+    <p>
+      <%= form.label :Phone_Number %><br>
+      <%= form.text_field :phone_no %>
+    </p>
+
+    <p>
+      <%= form.label :Birthdate %><br>
+      <%= form.date_field :birth_date %>
+    </p>
+
+    <p>
+      <%= form.label :Address %><br>
+      <%= form.text_field :address %>
+    </p>
+
+    <p>
+      <%= form.label :Parent_ID %><br>
+      <%= form.text_field :parent_id %>
+    </p>
+
+    <p>
+      <%= form.label :About_Me %><br>
+      <%= form.text_field :about_me %>
+    </p>
+
+    <p>
+      <%= form.label :Profile_Type %><br>
+      <%= form.select :profile_type, ['buyer','owner','broker'] %>
+    </p>
+
+    <p>
+      <%= form.submit %>
+    </p>
+   
+  <% end %>
