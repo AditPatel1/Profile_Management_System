@@ -1,7 +1,11 @@
 class AdminController < ApplicationController
 
+	#authenticate_request authenticates user reuests before accessing apis which need login
+	#it is skipped here for admin controller methods
 	skip_before_action :authenticate_request
-	before_action :authorize_admin, except: [:get_login, :post_login]
+
+	#authenticate_admin authenticates admin requests for admin login requiring methods
+	before_action :authenticate_admin, except: [:get_login, :post_login]
 
 	include UserHelper
 
@@ -70,14 +74,18 @@ class AdminController < ApplicationController
 	end
 
 	def search
-		if params[:query].nil? || params[:field].nil?
+		if params[:query].nil?
 		else
 			@users = User.search(params)
 		end
 	end
 
-	def deactivate_user
-		update_user(params[:user_id], status: 'inactive')
+	def change_status
+		if (params[:status] == 'active')
+			update_user(params[:user_id], status: 'inactive')
+		else
+			update_user(params[:user_id], status: 'active')
+		end
 		redirect_to admin_get_user_path(:user_id => params[:user_id])
 	end
 
@@ -89,7 +97,7 @@ class AdminController < ApplicationController
 	end
 
 	private
-	def authorize_admin
+	def authenticate_admin
 		admin_auth_token = cookies['admin_auth_token']
 		decoded_admin_auth_token ||= JsonWebToken.decode(admin_auth_token)
 		@current_admin ||= Admin.find(decoded_admin_auth_token[:admin_id]) if decoded_admin_auth_token

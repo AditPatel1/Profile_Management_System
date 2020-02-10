@@ -1,9 +1,5 @@
 <h1>Search Users</h1>
   <%= form_tag 'search_users' do %>
-  <%= label_tag :field, "Search by" %>
-  <%= radio_button_tag :field, 'name', checked: true %>Name
-  <%= radio_button_tag :field, 'email' %>E-mail
-  <%= radio_button_tag :field, 'phone_no' %>Phone Number
   <%= label_tag "Search for" %>
   <%= text_field_tag :query %>
   <%= submit_tag "Go", name: nil %>
@@ -36,7 +32,11 @@
             <td><%= user.profile_type %></td>
             <td><%= link_to 'Get Profile', admin_get_user_path(:user_id => user.id) %></td>
             <td><%= link_to 'Edit Profile', admin_edit_user_path(:user_id => user.id) %></td>
-            <td><%= link_to 'Deactivate User', deactivate_user_path(:user_id => user.id), method: :delete %></td>
+            <% if user.status == 'active'  %>
+              <td><%= link_to 'Deactivate User', admin_change_status_path(:user_id => user.id, :status => user.status), method: :delete %></td>
+            <% else %>
+              <td><%= link_to 'Activate User', admin_change_status_path(:user_id => user.id, :status => user.status), method: :delete %></td>
+            <% end %>
           </tr>
         <% end %>
       <tbody>

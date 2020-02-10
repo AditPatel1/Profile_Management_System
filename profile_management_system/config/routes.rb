@@ -33,7 +33,7 @@ Rails.application.routes.draw do
 
   get 'admin/daily_reports', to: 'admin#daily_reports'
 
-  delete 'admin/search', to: 'admin#deactivate_user', :as => 'deactivate_user'
+  delete 'admin/search', to: 'admin#change_status', :as => 'admin_change_status'
 
   get 'admin/create_user', to: 'admin#create_user_view', :as => 'admin_create_user_view'
   post 'admin/create_user', to: 'admin#create_user', :as => 'admin_create_user'
