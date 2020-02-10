@@ -15,15 +15,49 @@ class User < ApplicationRecord
 		__elasticsearch__.update_document
 	end
 
-begin
-	settings index: { number_of_shards: 1 } do
-		mapping dynamic: false do
-			indexes :name, type: 'keyword'
-			indexes :email, type: 'keyword'
-			indexes :phone_no, type: 'keyword'
+	settings index: {
+		number_of_shards: 1,
+		max_ngram_diff: 7,
+		analysis: {
+	     	analyzer: {
+		        ngram_tokenizer: {
+		        	tokenizer: 'ngram_tokenizer'
+		        }
+		    },
+			tokenizer: {
+				ngram_tokenizer: {
+				type: 'ngram',
+				min_gram: 3,
+				max_gram: 10,
+				token_chars: ['letter', 'digit']
+				}
+			}
+		}
+    } do
+    mapping do
+	    indexes :name, type: 'text', analyzer: 'english' do
+	    	indexes :ngram_tokenizer, analyzer: 'ngram_tokenizer'
+	    end
+
+		indexes :email, type: 'text', analyzer: 'english' do
+			indexes :ngram_tokenizer, analyzer: 'ngram_tokenizer'
+		end
+
+		indexes :phone_no, type: 'text', analyzer: 'english' do
+			indexes :ngram_tokenizer, analyzer: 'ngram_tokenizer'
 		end
 	end
-end
+	end
+
+=begin
+	settings index: { number_of_shards: 1 } do
+		mapping dynamic: false do
+			indexes :name
+			indexes :email
+			indexes :phone_no
+		end
+	end
+=end
 
 	def self.search(params)
 		#field = params[:field]
@@ -32,7 +66,8 @@ end
 			query: {
 				multi_match: {
 						fields: [:name, :email, :phone_no],
-            			query: query,
+						#fields: ["name.ngram_tokenizer", "email.ngram_tokenizer", "phone_no.ngram_tokenizer"],
+            			query: "#{query}",
             			type: "phrase_prefix"
 				}
 			}
@@ -152,22 +187,7 @@ end
 			return 0
 		end
 	end
-=begin
-	def self.get_height(user,height)
-		temp_height = height
-		if user.children.empty?
-			return temp_height
-		else
-			user.children.each do |child|
-				height_among_subtree = User.get_height(child,temp_height+1)
-				if height_among_subtree > height
-					height = height_among_subtree
-				end
-			end
-			return height_among_subtree
-		end
-	end
-=end
+
 	def self.get_height(user)
 		maxHeight=0 
 		if user.children.empty?
@@ -204,10 +224,11 @@ end
 			end
 			return user_auth_token if @current_user
 		else
-			user = User.find_by_email(email_or_phone_no)
-			if user == nil
-				user = User.find_by_phone_no(email_or_phone_no)
-			end
+			#user = User.find_by_email(email_or_phone_no)
+			user = User.find_by("email = ? OR phone_no = ? ", email_or_phone_no, email_or_phone_no)
+			#if user == nil
+				#user = User.find_by_phone_no(email_or_phone_no)
+			#end
 			if !user
 				return nil
 				#render plain: "User doesnt exist"

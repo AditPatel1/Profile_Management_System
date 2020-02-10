@@ -21,7 +21,6 @@ Rails.application.routes.draw do
   delete 'admin/logout', to: 'admin#logout'
 
   get 'admin/search_users', to: 'admin#search'
-
   post 'admin/search_users', to: 'admin#search'
 
   get 'admin/get_user', to: 'admin#get_user', :as => 'admin_get_user'

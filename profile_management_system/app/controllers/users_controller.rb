@@ -62,19 +62,25 @@ class UsersController < ApplicationController
 	def get_profile
 		#@user = get_user_profile(params[:profile_id])
 		@user = get_user_profile(@current_user.id)
-=begin
-		render json: {
-			Profile_ID: @user.id,
-			Name: @user.name,
-			Email: @user.email,
-			Phone_No: @user.phone_no,
-			Parent_id: @user.parent_id,
-			Address: @user.address,
-			Profile_type: @user.profile_type,
-			Birth_date: @user.birth_date,
-			About_Me: @user.about_me
-		}
-=end
+#=begin
+		respond_to do |format|
+			format.json {
+				render json: {
+					Profile_ID: @user.id,
+					Name: @user.name,
+					Email: @user.email,
+					Phone_No: @user.phone_no,
+					Parent_id: @user.parent_id,
+					Address: @user.address,
+					Profile_type: @user.profile_type,
+					Birth_date: @user.birth_date,
+					About_Me: @user.about_me
+				}
+			}
+			format.html {
+			}
+		end
+	#=end
 		#@user = Rails.cache.read(@current_user.id)
 		#byebug
 		#render :json => @current_user
