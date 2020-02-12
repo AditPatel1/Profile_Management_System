@@ -1,4 +1,11 @@
-<h2>User Details</h2>
+<% flash.each do |key, value| %>
+	<div class="<%=flash_class(key)%>">
+		<%= value %>
+	</div>
+<% end %>
+
+
+<h1>User Details</h1>
 
 Name : <%= @user.name %>
 <br><br>

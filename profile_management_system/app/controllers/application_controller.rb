@@ -1,20 +1,41 @@
 class ApplicationController < ActionController::Base
   #protect_from_forgery with: :exception
+  include ApplicationHelper
+
   before_action :authenticate_request
 
   attr_reader :current_user
-
+  
   private
 
   def authenticate_request
-
-    user_auth_token = cookies['user_auth_token']
-    if user_auth_token
+    if cookies['user_auth_token'].present?
+      user_auth_token = cookies['user_auth_token']
       @current_user = User.authenticate_using_redis(user_auth_token)
-      render json: { error: 'Not Authorized, Login again' }, status: 401 unless @current_user
+      if !@current_user
+        respond_to do |format|
+          format.json {
+            render json: {
+              error: 'Not Authorized, Login Again'
+            }
+          }
+          format.html{
+            redirect_to users_login_path, alert: 'Not Authorized, Please Login'
+            }
+        end
+      end
+      #render json: { error: 'Not Authorized, Login again' }, status: 401 unless @current_user
     else
-      #render plain: 'Sorry, you need to login again'
-      redirect_to users_login_path
+      respond_to do |format|
+          format.json {
+            render json: {
+              error: 'Not Authorized, Please Login'
+            }
+          }
+          format.html{
+              redirect_to users_login_path, alert: 'Not Authorized, Please Login'
+          }
+        end
     end
   	#if cookies['user_auth_token']
 		  #user_auth_token = cookies['user_auth_token']

@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
 
-  get 'welcome/index'
+  get 'users/index'
 
   get 'users/login', to: 'users#get_login'
 
@@ -16,7 +16,7 @@ Rails.application.routes.draw do
 
   get 'admin/index', to: 'admin#index'
 
-  delete 'users/logout', to: 'users#logout'
+  post 'users/logout', to: 'users#logout'
 
   delete 'admin/logout', to: 'admin#logout'
 
@@ -38,7 +38,8 @@ Rails.application.routes.draw do
   post 'admin/create_user', to: 'admin#create_user', :as => 'admin_create_user'
 
   #get 'userauthenticationfailed', to: 'users#authenticationfailed'
-  root 'welcome#index'
+  root to: redirect('users/index')
+
 
   require 'sidekiq/web'
   mount Sidekiq::Web => '/sidekiq'

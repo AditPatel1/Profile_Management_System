@@ -47,6 +47,10 @@ gem 'rename'
 #instead of private controller methods, use SIMPLE COMMAND
 gem 'simple_command'
 
+#bootstrap
+gem 'jquery-rails'
+gem 'bootstrap-sass'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 

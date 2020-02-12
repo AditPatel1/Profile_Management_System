@@ -1,3 +1,10 @@
+<% flash.each do |key, value| %>
+	<div class="<%=flash_class(key)%>">
+		<%= value %>
+	</div>
+<% end %>
+
+
 <h1> Welcome, <%= @user.name %> ! </h1>
 
 Name : <%= @user.name %>
@@ -12,12 +19,12 @@ Address : <%= @user.address %>
 <br><br>
 About Me : <%= @user.about_me %>
 <br><br>
-Parent_ID : <%= @user.parent_id %>
+Parent_ID : <%= @user.parent_id ? @user.parent_id : 'Parent Not Present' %>
 <br><br>
 Profile_Type : <%= @user.profile_type %>
 <br><br>
 Status : <%= @user.status %>
 <br><br>
 
-<%= link_to 'Edit', edit_user_path(@user) %><br>
-<%= link_to 'Logout', users_logout_path, method: :delete %>
+<%= link_to 'Edit', edit_user_path(@user)%><br>
+<%= link_to 'Logout', users_logout_path, method: :post %>

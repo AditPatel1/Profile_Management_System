@@ -1,34 +1,106 @@
 class UsersController < ApplicationController
-	skip_before_action :authenticate_request, only: [:new, :create, :get_login, :post_login]
+
+	#authenticate_request authenticates user reuests before accessing apis which need login
+	#get_login,post_login.new,create methods are accessible without login so the action is skipped
+	skip_before_action :authenticate_request, only: [:index, :new, :create, :get_login, :post_login]
+
+	#helper method for get_profile of users and update for user profile
 	include UserHelper
 
+	def index
+		is_logged_in
+	end
+	#new method is called when user creats a profile i.e. when signup is done, view of create profile is rendered
 	def new
 		@user = User.new
 	end
 
-	def get_login
+	#'POST' method after user enters parameters in form for SIGNUP
+	def create
+		@user = User.new(user_params)
+		#user_params are defined as a private method at the bottom which tells which params are permitted
+		if @user.save
+			respond_to do |format|
+				format.json {
+					render json: {
+						Profile_ID: @user.id,
+						Message: 'Successfully signed up'
+					}
+				}
+				#on successful signup. API response is Json which consists of Profile ID and successfully signed up msg
+				format.html {
+					flash[:success] = 'Successfully signed up, You can login now'
+					redirect_to users_login_path
+					#redirect_to user_path(@user)
+				}
+			end
+		else
+			respond_to do |format|
+				format.json {
+					render json: {
+						error: @user.errors.full_messages.to_sentence,
+						message: 'SIgn Up unsuccessful'
+					}
+				}
+				format.html {
+					flash.alert = 'Signup unsuccessful. Please check the below fields'
+					flash[:error] = @user.errors.full_messages.to_sentence
+					redirect_to new_user_path
+				}
+			end
+		end
 	end
 
+	#'GET' method to render the form for login for user in website
+	def get_login
+		is_logged_in
+	end
+
+	#'POST' method after user enters credentials
 	def post_login
-		#render plain: 'You are logged in'
-		user_auth_token = cookies['user_auth_token']
-		auth_token = User.redis_key_generate(params[:email_or_phone_no], params[:password], user_auth_token)
-		#user_auth_token = AuthenticateUser.call(params[:email], params[:password])
-		#byebug
-		#response.headers['Authorization'] = "JWT #{auth_token.result}"
-		if auth_token == nil
-			render json: {
-				message: "Error. Cannot login, wrong credentials"
-			}
+		auth_token = User.redis_key_generate(params[:email_or_phone_no], params[:password])
+			#user_auth_token = AuthenticateUser.call(params[:email], params[:password])
+			#response.headers['Authorization'] = "JWT #{auth_token.result}"
+		if auth_token == 404 || auth_token == 401     
+		#401 denotes wrong password, 404 denotes 'cannot find user in database'
+			respond_to do |format|
+				format.json {
+					if auth_token == 401
+						render json: {
+							error: 'Incorrect login credentials'
+						}, status: 401
+					else
+						render json: {
+							error: 'User doesnot exist'
+						}, status: 404
+					end
+				}
+				format.html {
+					if auth_token == 401
+						flash[:error] = 'Password incorrect. Please login again'
+					else
+						flash[:error] = 'User doesnot exist'
+					end
+					redirect_to users_login_path
+				}
+			end
 		else
 			user_id = Rails.cache.read(auth_token,namespace:'cache')
 			@current_user = get_user_object(user_id)
 			if @current_user.status == 'inactive'
-				render json: {
-					message: "User Deactivated"
-				}
+				respond_to do |format|
+					format.json {
+						render json: {
+							message: 'User Deactivated'
+						}
+					}
+					format.html {
+						flash[:notice] = 'User Deactivated. Please contact administrator for more details.'
+						redirect_to users_login_path
+					}
+				end
 			else
-				response.set_cookie "user_auth_token", "#{auth_token}"
+				response.set_cookie 'user_auth_token', "#{auth_token}"
 				respond_to do |format|
 					format.json {
 						render json: {
@@ -46,23 +118,15 @@ class UsersController < ApplicationController
 						}
 					}
 					format.html {
-						redirect_to users_get_profile_path
+						redirect_to users_get_profile_path, success: 'Successfully logged in'
 					}
 				end
 			end
 		end
-		#if command.success?
-			#response.headers['Authorization'] = "JWT #{command.result}"
-			#render json: { auth_token: command }#.result }
-			#else
-			#render json: { error: command.errors }, status: :unauthorized
-		#end
 	end
 
 	def get_profile
-		#@user = get_user_profile(params[:profile_id])
 		@user = get_user_profile(@current_user.id)
-#=begin
 		respond_to do |format|
 			format.json {
 				render json: {
@@ -80,10 +144,6 @@ class UsersController < ApplicationController
 			format.html {
 			}
 		end
-	#=end
-		#@user = Rails.cache.read(@current_user.id)
-		#byebug
-		#render :json => @current_user
 	end
 
 	def edit
@@ -93,64 +153,20 @@ class UsersController < ApplicationController
 		#end
 	end
 
-	def show
-		#@user = User.find_by(id: params[id])
-		render plain: 'Hello'
-	end
-
-	def create
-		@user = User.new(user_params)
-		if @user.save
-=begin
-			render json: {
-				Profile_ID: @user.id,
-				Message: 'Successfully signed up'
-			}
-=end
-			redirect_to users_login_path
-			#redirect_to user_path(@user)
-		else
-			render json: {
-				message: @user.errors.full_messages.to_sentence
-				}
-		end
-		#if(params[:password] == params[:re_enter_password])
-		#	@user = User.new(user_params)
-		#	if @user.save
-		#		render plain: params[:re_enter_params]
-				#redirect_to @user
-		#	else
-		#		render plain: 'You need to sign up again'
-		#		link_to 'Signup', new_user_path
-		#	end
-		#else
-		#	redirect_to new_user_path
-		#end
-	end
-
 	def update
 		if update_user(@current_user.id,user_params)
 			redirect_to users_get_profile_path
 		else
-			flash[:error] = "Incorrect Inputs"
 			redirect_to edit_user_path(@current_user)
 		end
-=begin
-		if @current_user.update(user_params)
-			Rails.cache.delete(@current_user.id, namespace: "cache")
-			redirect_to users_get_profile_path
-		else
-			#flash[:error] = "Incorrect Inputs"
-			redirect_to edit_user_path(@current_user)
-		end
-=end
 	end
 
 
 	def logout
-		#cookies.delete :user_auth_token
 		Rails.cache.delete(cookies['user_auth_token'], namespace: "cache")
+		cookies.delete :user_auth_token, domain: 'localhost'
 		@current_user = nil
+		flash[:success] = 'Logged out successfully'
 		redirect_to users_login_path
 	end
 

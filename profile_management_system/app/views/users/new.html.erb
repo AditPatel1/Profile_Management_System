@@ -1,23 +1,31 @@
+<% flash.each do |key, value| %>
+  <div class="<%=flash_class(key)%>">
+    <%= value %>
+  </div>
+<% end %>
+
+
 <h1>Sign Up</h1>
 <%= form_for @user do |f|%>
   <%= f.label :Name%>
-  <%= f.text_field :name%><br><br><br>
+  <%= f.text_field :name%><br><br>
   <%= f.label :Email%>
-  <%= f.email_field :email%><br><br><br>
+  <%= f.email_field :email%><br><br>
   <%= f.label :Password%>
-  <%= f.password_field :password%><br><br><br>
+  <%= f.password_field :password%><br><br>
   <%= f.label :Phone_Number %>
-  <%= f.text_field :phone_no%><br><br><br>
+  <%= f.text_field :phone_no%><br><br>
   <%= f.label :Birthdate%>
-  <%= f.date_field :birth_date%><br><br><br>
+  <%= f.date_field :birth_date%><br><br>
   <%= f.label :Address%>
-  <%= f.text_field :address%><br><br><br>
+  <%= f.text_field :address%><br><br>
   <%= f.label :About_Me%>
-  <%= f.text_field :about_me%><br><br><br>
+  <%= f.text_field :about_me%><br><br>
   <%= f.label :Profile_Type%>
-  <%= f.select :profile_type, ['buyer','owner','broker'] %><br><br><br>
+  <%= f.select :profile_type, ['buyer','owner','broker'] %><br><br>
 
   <%= f.submit %>
 <%end%>
 
-<%= link_to 'Back', welcome_index_path %>
+<br>
+<%= button_to 'Back', users_index_path, method: :get%>

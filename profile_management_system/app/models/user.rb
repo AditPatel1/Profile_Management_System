@@ -4,6 +4,7 @@ class User < ApplicationRecord
 	require 'securerandom'
 
 	include UserHelper
+	
 	include Elasticsearch::Model
 	include Elasticsearch::Model::Callbacks
 
@@ -34,7 +35,7 @@ class User < ApplicationRecord
 			}
 		}
     } do
-    mapping do
+    mapping dynamic: false do
 	    indexes :name, type: 'text', analyzer: 'english' do
 	    	indexes :ngram_tokenizer, analyzer: 'ngram_tokenizer'
 	    end
@@ -65,10 +66,10 @@ class User < ApplicationRecord
 		data = self.__elasticsearch__.search({
 			query: {
 				multi_match: {
-						fields: [:name, :email, :phone_no],
-						#fields: ["name.ngram_tokenizer", "email.ngram_tokenizer", "phone_no.ngram_tokenizer"],
+						#fields: [:name, :email, :phone_no],
+						fields: ["name.ngram_tokenizer", "email.ngram_tokenizer", "phone_no.ngram_tokenizer"],
             			query: "#{query}",
-            			type: "phrase_prefix"
+            			#type: "phrase_prefix"
 				}
 			}
 =begin
@@ -87,16 +88,19 @@ class User < ApplicationRecord
 	end
 
 
-	#def as_indexed_json(options={}) {
-		#{}"name" => name,
-		#{}"email" => email,
-		#{}"phone_no" => phone_no
-		#}
-	#end
+	def as_indexed_json(options={}) {
+		"id" => id,
+		"name" => name,
+		"email" => email,
+		"phone_no" => phone_no,
+		"status" => status,
+		"profile_type" => profile_type
+		}
+	end
 
 	def self.insertion_in_es
-		User.__elasticsearch__.client.indices.create \
-		index: User.index_name, body: { settings: User.settings.to_hash, mappings: User.mappings.to_hash }
+		#User.__elasticsearch__.client.indices.create \
+		#index: User.index_name, body: { settings: User.settings.to_hash, mappings: User.mappings.to_hash }
 
 		User.find_each do |i|
 			i.__elasticsearch__.index_document
@@ -214,38 +218,27 @@ class User < ApplicationRecord
 	attr_accessor :email_or_phone_no, :user_password, :user_auth_token
 
 
-	def self.redis_key_generate(email_or_phone_no, user_password, user_auth_token)
-		user_id = Rails.cache.read(user_auth_token, namespace: "cache")
-		if user_auth_token && user_id
-			@current_user = Rails.cache.read(user_id, namespace: "cache")
-			if @current_user == nil
-				@current_user = User.find_by(id: user_id)
-				Rails.cache.write(user_id,@current_user,namespace: "cache", expires_in:1.day)
-			end
-			return user_auth_token if @current_user
+	def self.redis_key_generate(email_or_phone_no, user_password)
+		#user = User.find_by_email(email_or_phone_no)
+		user = User.find_by("email = ? OR phone_no = ? ", email_or_phone_no, email_or_phone_no)
+		#if user == nil
+			#user = User.find_by_phone_no(email_or_phone_no)
+		#end
+		if !user
+			return 404
+			#render plain: "User doesnt exist"
 		else
-			#user = User.find_by_email(email_or_phone_no)
-			user = User.find_by("email = ? OR phone_no = ? ", email_or_phone_no, email_or_phone_no)
-			#if user == nil
-				#user = User.find_by_phone_no(email_or_phone_no)
-			#end
-			if !user
-				return nil
-				#render plain: "User doesnt exist"
+			if user.authenticate(user_password)
+				random_token = SecureRandom.base64(16)
+				Rails.cache.write(random_token, user.id, namespace: "cache", expires_in:1.day)
+				Rails.cache.write(user.id, user, namespace: "cache", expires_in:1.day)
+				@current_user = user
+				return random_token
 			else
-				if user.authenticate(user_password)
-					random_token = SecureRandom.base64(16)
-					Rails.cache.write(random_token, user.id, namespace: "cache", expires_in:1.day)
-					Rails.cache.write(user.id, user, namespace: "cache", expires_in:1.day)
-					@current_user = user
-					return random_token
-				else
-					return nil
-					#render plain: 'Wrong credentials, try again'
-				end
+				return 401
+				#render plain: 'Wrong credentials, try again'
 			end
 		end
-		nil
 	end
 
 	

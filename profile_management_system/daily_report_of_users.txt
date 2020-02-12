@@ -4,3 +4,5 @@ Number of users created on 2020-01-30 : 5
 Number of users created on 2020-02-02 : 1 
 Number of users created on 2020-02-04 : 0 
 Number of users created on 2020-02-06 : 0 
+Number of users created on 2020-02-09 : 0 
+Number of users created on 2020-02-11 : 3 
